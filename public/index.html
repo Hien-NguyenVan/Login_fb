@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FB Page Token Tool — WOM Network</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Space+Grotesk:wght@300;500;700&display=swap');
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --border: #1e1e2e;
+    --accent: #4f6ef7;
+    --green: #22c55e;
+    --red: #ef4444;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --fb: #1877f2;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(79,110,247,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(79,110,247,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+  }
+
+  .wrap {
+    width: 100%;
+    max-width: 580px;
+    animation: fadeUp 0.45s ease both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Header */
+  .header {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 28px;
+  }
+  .logo {
+    width: 42px; height: 42px;
+    background: var(--fb);
+    border-radius: 11px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 22px; color: #fff;
+    font-family: 'JetBrains Mono', monospace;
+    flex-shrink: 0;
+  }
+  .header h1 { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
+  .header p  { font-size: 11px; color: var(--muted); font-family: 'JetBrains Mono', monospace; margin-top: 2px; }
+
+  /* Card */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    margin-bottom: 14px;
+  }
+
+  /* Login screen */
+  #loginScreen { text-align: center; }
+
+  .login-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    display: block;
+  }
+
+  .login-title {
+    font-size: 20px; font-weight: 700;
+    margin-bottom: 8px;
+  }
+
+  .login-sub {
+    font-size: 13px; color: var(--muted);
+    line-height: 1.6;
+    margin-bottom: 28px;
+  }
+
+  .btn-login {
+    width: 100%;
+    background: var(--fb);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 14px 20px;
+    font-size: 15px; font-weight: 700;
+    font-family: 'Space Grotesk', sans-serif;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    transition: all 0.2s;
+    text-decoration: none;
+  }
+  .btn-login:hover {
+    background: #1565c0;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(24,119,242,0.3);
+  }
+  .btn-login svg { width: 20px; height: 20px; flex-shrink: 0; }
+
+  .scope-note {
+    margin-top: 14px;
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* Loading */
+  #loadingScreen { display: none; text-align: center; padding: 16px 0; }
+  .spinner {
+    width: 36px; height: 36px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    margin: 0 auto 16px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #loadingScreen p { color: var(--muted); font-size: 13px; font-family: 'JetBrains Mono', monospace; }
+
+  /* Error */
+  #errorScreen { display: none; }
+  .error-box {
+    background: rgba(239,68,68,0.08);
+    border: 1px solid rgba(239,68,68,0.25);
+    border-radius: 10px;
+    padding: 16px;
+    color: #f87171;
+    font-size: 13px;
+    font-family: 'JetBrains Mono', monospace;
+    margin-bottom: 16px;
+    line-height: 1.6;
+  }
+  .btn-retry {
+    width: 100%; background: transparent;
+    border: 1px solid var(--border); color: var(--text);
+    border-radius: 8px; padding: 10px;
+    font-size: 13px; font-family: 'JetBrains Mono', monospace;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .btn-retry:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Results */
+  #resultsScreen { display: none; }
+
+  .results-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .results-title { font-size: 15px; font-weight: 700; }
+
+  .badge {
+    background: rgba(34,197,94,0.12);
+    color: var(--green);
+    border: 1px solid rgba(34,197,94,0.25);
+    padding: 3px 10px; border-radius: 20px;
+    font-size: 11px; font-family: 'JetBrains Mono', monospace; font-weight: 600;
+  }
+
+  /* Page item */
+  .page-item {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 10px;
+    animation: fadeUp 0.3s ease both;
+  }
+  .page-item:last-child { margin-bottom: 0; }
+
+  .page-name {
+    font-size: 14px; font-weight: 600;
+    margin-bottom: 3px;
+  }
+  .page-meta {
+    font-size: 11px; color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+    margin-bottom: 10px;
+  }
+  .token-label {
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 10px; color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+    margin-bottom: 5px;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .copy-hint { transition: color 0.2s; cursor: default; }
+  .copy-hint.ok { color: var(--green); }
+
+  .token-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 9px 12px;
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--accent);
+    word-break: break-all;
+    line-height: 1.7;
+    cursor: pointer;
+    transition: border-color 0.2s;
+    user-select: all;
+  }
+  .token-box:hover { border-color: var(--accent); }
+
+  /* Actions */
+  .actions {
+    display: flex; gap: 10px; margin-top: 16px;
+  }
+  .btn-action {
+    flex: 1; background: transparent;
+    border: 1px solid var(--border); color: var(--text);
+    border-radius: 8px; padding: 10px;
+    font-size: 12px; font-family: 'JetBrains Mono', monospace;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .btn-action:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-action.primary {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(79,110,247,0.06);
+  }
+  .btn-action.primary:hover { background: rgba(79,110,247,0.12); }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    font-size: 11px; color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* Empty state */
+  .empty {
+    text-align: center; padding: 24px;
+    color: var(--muted); font-size: 13px;
+    line-height: 1.7;
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="header">
+    <div class="logo">f</div>
+    <div>
+      <h1>Page Token Tool</h1>
+      <p>WOM Network // FB OAuth Helper</p>
+    </div>
+  </div>
+
+  <div class="card">
+
+    <!-- Login -->
+    <div id="loginScreen">
+      <span class="login-icon">🔑</span>
+      <div class="login-title">Lấy Page Access Token</div>
+      <div class="login-sub">
+        Đăng nhập tài khoản Facebook để lấy<br>
+        access token của tất cả pages bạn quản lý.
+      </div>
+      <a id="loginBtn" class="btn-login" href="#">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+        </svg>
+        Đăng nhập Facebook
+      </a>
+      <div class="scope-note">Quyền yêu cầu: pages_manage_posts, pages_read_engagement</div>
+    </div>
+
+    <!-- Loading -->
+    <div id="loadingScreen">
+      <div class="spinner"></div>
+      <p>Đang xử lý, vui lòng chờ...</p>
+    </div>
+
+    <!-- Error -->
+    <div id="errorScreen">
+      <div class="error-box" id="errorMsg"></div>
+      <button class="btn-retry" onclick="goLogin()">← Thử lại</button>
+    </div>
+
+    <!-- Results -->
+    <div id="resultsScreen">
+      <div class="results-header">
+        <div class="results-title">Page Access Tokens</div>
+        <div class="badge" id="pageCount">0 pages</div>
+      </div>
+      <div id="pageList"></div>
+      <div class="actions">
+        <button class="btn-action primary" onclick="copyAllJson()">📋 Copy JSON</button>
+        <button class="btn-action" onclick="copyAllCsv()">📄 Copy CSV</button>
+        <button class="btn-action" onclick="goLogin()">↺ Login lại</button>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="footer">Token không được lưu trên server • App Secret ẩn hoàn toàn</div>
+</div>
+
+<script>
+// APP_ID được inject bởi Vercel — chỉ APP_ID, không có SECRET
+// Vercel Edge Config hoặc đơn giản hơn: hardcode APP_ID ở đây (APP_ID public là ok)
+const APP_ID = 'YOUR_APP_ID'; // ← chỉ cần điền APP_ID, SECRET nằm trong env Vercel
+
+const REDIRECT_URI = window.location.origin + '/api/callback';
+const SCOPE = 'pages_manage_posts,pages_read_engagement,pages_show_list';
+
+// Build login URL
+document.getElementById('loginBtn').href =
+  `https://www.facebook.com/dialog/oauth?client_id=${APP_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=${SCOPE}&response_type=code`;
+
+// ─── Xử lý URL params khi redirect về ───────────────────
+window.addEventListener('load', () => {
+  const params = new URLSearchParams(window.location.search);
+  const data  = params.get('data');
+  const error = params.get('error');
+
+  // Dọn URL
+  if (data || error) {
+    window.history.replaceState({}, '', '/');
+  }
+
+  if (error) {
+    if (error === 'cancelled') {
+      showLogin();
+    } else {
+      showError('Lỗi từ Facebook: ' + decodeURIComponent(error));
+    }
+    return;
+  }
+
+  if (data) {
+    try {
+      const pages = JSON.parse(atob(data));
+      showResults(pages);
+    } catch {
+      showError('Không parse được dữ liệu. Thử lại.');
+    }
+    return;
+  }
+
+  showLogin();
+});
+
+// ─── Screens ─────────────────────────────────────────────
+function showLogin() {
+  document.getElementById('loginScreen').style.display = 'block';
+  document.getElementById('loadingScreen').style.display = 'none';
+  document.getElementById('errorScreen').style.display = 'none';
+  document.getElementById('resultsScreen').style.display = 'none';
+}
+
+function goLogin() {
+  showLogin();
+  window.scrollTo(0, 0);
+}
+
+function showError(msg) {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('loadingScreen').style.display = 'none';
+  document.getElementById('errorScreen').style.display = 'block';
+  document.getElementById('resultsScreen').style.display = 'none';
+  document.getElementById('errorMsg').textContent = '⚠ ' + msg;
+}
+
+function showResults(pages) {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('loadingScreen').style.display = 'none';
+  document.getElementById('errorScreen').style.display = 'none';
+  document.getElementById('resultsScreen').style.display = 'block';
+
+  document.getElementById('pageCount').textContent = `${pages.length} page${pages.length !== 1 ? 's' : ''}`;
+
+  const list = document.getElementById('pageList');
+  list.innerHTML = '';
+
+  if (pages.length === 0) {
+    list.innerHTML = '<div class="empty">Không tìm thấy page nào.<br>Via cần là <strong>Admin</strong> hoặc <strong>Editor</strong> của page.</div>';
+    return;
+  }
+
+  pages.forEach((page, i) => {
+    const item = document.createElement('div');
+    item.className = 'page-item';
+    item.style.animationDelay = (i * 0.04) + 's';
+    item.innerHTML = `
+      <div class="page-name">📄 ${esc(page.name)}</div>
+      <div class="page-meta">ID: ${page.id} · ${page.category || ''}</div>
+      <div class="token-label">
+        <span>Page Access Token</span>
+        <span class="copy-hint" id="h${i}">click để copy</span>
+      </div>
+      <div class="token-box" onclick="copyToken('${esc(page.access_token)}','h${i}')">${esc(page.access_token)}</div>
+    `;
+    list.appendChild(item);
+  });
+
+  window._pages = pages;
+}
+
+// ─── Copy helpers ─────────────────────────────────────────
+function copyToken(token, hintId) {
+  navigator.clipboard.writeText(token).then(() => {
+    const h = document.getElementById(hintId);
+    h.textContent = '✓ copied!'; h.className = 'copy-hint ok';
+    setTimeout(() => { h.textContent = 'click để copy'; h.className = 'copy-hint'; }, 2000);
+  });
+}
+
+function copyAllJson() {
+  if (!window._pages) return;
+  const out = window._pages.map(p => ({ page_id: p.id, page_name: p.name, access_token: p.access_token }));
+  navigator.clipboard.writeText(JSON.stringify(out, null, 2)).then(() => {
+    flashBtn('📋 Copy JSON', '✓ Đã copy!', 0);
+  });
+}
+
+function copyAllCsv() {
+  if (!window._pages) return;
+  const rows = ['page_id,page_name,access_token',
+    ...window._pages.map(p => `${p.id},"${p.name.replace(/"/g,'""')}",${p.access_token}`)
+  ].join('\n');
+  navigator.clipboard.writeText(rows).then(() => {
+    flashBtn('📄 Copy CSV', '✓ Đã copy!', 1);
+  });
+}
+
+function flashBtn(orig, msg, idx) {
+  const btns = document.querySelectorAll('.btn-action');
+  if (!btns[idx]) return;
+  btns[idx].textContent = msg;
+  setTimeout(() => btns[idx].textContent = orig, 2000);
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
