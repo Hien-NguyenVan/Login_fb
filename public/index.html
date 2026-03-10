@@ -330,7 +330,7 @@ const SCOPE = 'pages_manage_posts,pages_read_engagement,pages_show_list';
 
 // Build login URL
 document.getElementById('loginBtn').href =
-  `https://www.facebook.com/dialog/oauth?client_id=${APP_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=${SCOPE}&response_type=code`;
+  `https://www.facebook.com/v19.0/dialog/oauth?client_id=${APP_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=${SCOPE}&response_type=code`;
 
 // ─── Xử lý URL params khi redirect về ───────────────────
 window.addEventListener('load', () => {
